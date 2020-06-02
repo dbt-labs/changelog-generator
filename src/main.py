@@ -130,9 +130,6 @@ if __name__ == "__main__":
     github_instance = Github(access_token)
     repo = github_instance.get_repo(REPO_NAME)
 
-    print(get_commits(repo, "master"))
-    exit(0)
-
     if args.ci_pr:
         if run_ci(args):
             exit(0)
