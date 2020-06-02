@@ -1,0 +1,12 @@
+name: "Changelog Generator"
+description: "Enforce changelog generation via CI"
+inputs:
+  pr-number:
+    description: "Pull Request Number"
+    required: true
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - --ci-pr
+    - ${{ inputs.pr-number }}
