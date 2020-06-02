@@ -125,7 +125,7 @@ def run_changelog_generation(args):
 if __name__ == "__main__":
     args = get_args()
 
-    access_token = os.getenv("GITHUB_ACCESS_TOKEN")
+    access_token = os.getenv("GITHUB_TOKEN")
 
     github_instance = Github(access_token)
     repo = github_instance.get_repo(REPO_NAME)
