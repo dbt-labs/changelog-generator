@@ -16,19 +16,28 @@ CHANGELOG_LABELS = [
     "changelog/ignore",
 ]
 
+CHANGELOG_CATEGORIES = {
+    "changelog/breaking": "Breaking Changes",
+    "changelog/enhancement": "Enhancements",
+    "changelog/bugfix": "Fixed",
+    "changelog/internal": "Internal",
+}
+
 REPO_NAME = "fishtown-analytics/dbt-cloud"
 
-MERGE_MSG_REGEX = re.compile(r"^Merge pull request #(\d+) from ")
+MERGE_MSG_REGEX = re.compile(
+    r"^Merge pull request #(?P<pr_number>\d+) from (?:\S)*\n\n(?P<pr_title>.*)$"
+)
 
 
-def get_pr_labels(pull: PullRequest) -> List[str]:
+def get_pr_labels(pull) -> List[str]:
     """
     Given a pull request, returns all of the labels on that PR.
     """
     return [label.name for label in pull.labels]
 
 
-def get_changelog_label(pull: PullRequest) -> Optional[str]:
+def get_changelog_label(pull) -> Optional[str]:
     """
     Returns the first changelog label found for a given PR.
     """
@@ -52,7 +61,7 @@ def get_pr_number(commit_msg: str) -> Optional[int]:
     return int(result.group(1))
 
 
-def get_commits(repo: Repository, branch: str):
+def get_commits(repo, branch: str):
     import pprint
 
     for commit in repo.get_commits():
@@ -61,7 +70,7 @@ def get_commits(repo: Repository, branch: str):
     return []
 
 
-def ci_pr(pull: PullRequest) -> bool:
+def ci_pr(pull) -> bool:
     """
     Returns true if the pull request specified has one of the changelog labels,
     false if it doesn't have one of the labels.
@@ -89,11 +98,20 @@ def get_args():
     parser = argparse.ArgumentParser(description="Get args.")
     parser.add_argument(
         "--ci-pr",
-        required=True,
+        required=False,
         help=(
             "Given a PR number, run a CI process on that PR. If the PR has "
             "the right label, CI will pass. If it has the wrong set of labels "
             "then CI will fail."
+        ),
+    )
+
+    parser.add_argument(
+        "--start-sha",
+        required=False,
+        help=(
+            "Given a sha, find all merge commits since that SHA, and generate "
+            "a changelog for them."
         ),
     )
 
@@ -107,7 +125,7 @@ def run_ci(args):
     """
     pr_number = int(args.ci_pr)
 
-    github_instance = Github(access_token)
+    github_instance = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
     repo = github_instance.get_repo(REPO_NAME)
 
     pull = repo.get_pull(pr_number)
@@ -115,20 +133,56 @@ def run_ci(args):
     return ci_pr(pull)
 
 
+def _get_changelog_entries(repo, start_sha):
+    entries = []
+
+    for commit in repo.get_commits():
+        if commit.sha == start_sha:
+            break
+
+        result = MERGE_MSG_REGEX.match(commit.commit.message)
+
+        if result:
+            pr_number = int(result.group("pr_number"))
+
+            entries.append(
+                {
+                    "label": get_changelog_label(repo.get_pull(pr_number)),
+                    "title": result.group("pr_title"),
+                }
+            )
+
+    return entries
+
+
 def run_changelog_generation(args):
     """
     Main function for the changelog generation process.
     """
-    pass
+    github_instance = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
+    repo = github_instance.get_repo(REPO_NAME)
+
+    entries = _get_changelog_entries(repo, args.start_sha)
+    output = ""
+
+    for label, category in CHANGELOG_CATEGORIES.items():
+        has_entries = False
+        category_output = f"\n#### {category}\n\n"
+
+        for entry in entries:
+            if label == entry["label"]:
+                has_entries = True
+                title = entry["title"]
+                category_output += f"- {title}\n"
+
+        if has_entries:
+            output += category_output
+
+    print(output)
 
 
 if __name__ == "__main__":
     args = get_args()
-
-    access_token = os.getenv("GITHUB_ACCESS_TOKEN")
-
-    github_instance = Github(access_token)
-    repo = github_instance.get_repo(REPO_NAME)
 
     if args.ci_pr:
         if run_ci(args):
