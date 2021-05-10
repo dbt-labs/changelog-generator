@@ -29,6 +29,13 @@ MERGE_MSG_REGEX = re.compile(
     r"^Merge pull request #(?P<pr_number>\d+) from (?:\S)*\n\n(?P<pr_title>.*)$"
 )
 
+BASE_SQUASH_MSG_REGEX = re.compile(
+    r"^(?P<base_msg>.*)"
+)
+
+SQUASH_MSG_REGEX = re.compile(
+    r"^(?P<pr_title>.*) \(#(?P<pr_number>\d+)\).*$", re.DOTALL
+)
 
 def get_pr_labels(pull) -> List[str]:
     """
@@ -140,7 +147,15 @@ def _get_changelog_entries(repo, start_sha):
         if commit.sha == start_sha:
             break
 
+        # parse title and pr number for normal merge format
         result = MERGE_MSG_REGEX.match(commit.commit.message)
+
+        # check for squash and merge format
+        if not result:
+            # parse first line from commit message
+            first_line = BASE_SQUASH_MSG_REGEX.match(commit.commit.message)
+            # parse title and pr number from squash and merge first line
+            result = SQUASH_MSG_REGEX.match(first_line.group("base_msg"))
 
         if result:
             pr_number = int(result.group("pr_number"))
