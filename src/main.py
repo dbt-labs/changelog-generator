@@ -12,6 +12,7 @@ CHANGELOG_LABELS = [
     "changelog/bugfix",
     "changelog/breaking",
     "changelog/enhancement",
+    "changelog/feature",
     "changelog/internal",
     "changelog/ignore",
 ]
@@ -19,6 +20,7 @@ CHANGELOG_LABELS = [
 CHANGELOG_CATEGORIES = {
     "changelog/breaking": "Breaking Changes",
     "changelog/enhancement": "Enhancements",
+    "changelog/feature": "Features",
     "changelog/bugfix": "Fixed",
     "changelog/internal": "Internal",
 }
