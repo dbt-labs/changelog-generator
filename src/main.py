@@ -15,6 +15,7 @@ CHANGELOG_LABELS = [
     "changelog/feature",
     "changelog/internal",
     "changelog/ignore",
+    "changelog/feature",
 ]
 
 CHANGELOG_CATEGORIES = {
@@ -23,9 +24,10 @@ CHANGELOG_CATEGORIES = {
     "changelog/feature": "Features",
     "changelog/bugfix": "Fixed",
     "changelog/internal": "Internal",
+    "changelog/feature": "Feature",
 }
 
-REPO_NAME = "fishtown-analytics/dbt-cloud"
+REPO_NAME = "dbt-labs/dbt-cloud"
 
 MERGE_MSG_REGEX = re.compile(
     r"^Merge pull request #(?P<pr_number>\d+) from (?:\S)*\n\n(?P<pr_title>.*)$"
@@ -38,6 +40,7 @@ BASE_SQUASH_MSG_REGEX = re.compile(
 SQUASH_MSG_REGEX = re.compile(
     r"^(?P<pr_title>.*) \(#(?P<pr_number>\d+)\).*$", re.DOTALL
 )
+
 
 def get_pr_labels(pull) -> List[str]:
     """
