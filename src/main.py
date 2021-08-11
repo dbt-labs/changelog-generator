@@ -26,7 +26,6 @@ CHANGELOG_CATEGORIES = {
     "changelog/bugfix": "Fixed",
     "changelog/internal": "Internal",
     "changelog/feature": "Feature",
-    "changelog/feature",
 }
 
 REPO_NAME = "dbt-labs/dbt-cloud"
