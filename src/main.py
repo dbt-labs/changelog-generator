@@ -138,7 +138,7 @@ def run_ci(args):
     """
     pr_number = int(args.ci_pr)
 
-    github_instance = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
+    github_instance = Github(os.getenv("GITHUB_TOKEN"))
     repo = github_instance.get_repo(REPO_NAME)
 
     pull = repo.get_pull(pr_number)
@@ -180,7 +180,7 @@ def run_changelog_generation(args):
     """
     Main function for the changelog generation process.
     """
-    github_instance = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
+    github_instance = Github(os.getenv("GITHUB_TOKEN"))
     repo = github_instance.get_repo(REPO_NAME)
 
     entries = _get_changelog_entries(repo, args.start_sha)
