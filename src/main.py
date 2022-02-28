@@ -128,6 +128,16 @@ def get_args():
         ),
     )
 
+    parser.add_argument(
+        "--end-sha",
+        required=False,
+        default=None,
+        help=(
+            "Given a sha, find all merge commits until that SHA, and generate "
+            "a changelog for them."
+        ),
+    )
+
     args = parser.parse_args()
     return args
 
@@ -146,10 +156,20 @@ def run_ci(args):
     return ci_pr(pull)
 
 
-def _get_changelog_entries(repo, start_sha):
+def _get_changelog_entries(repo, start_sha, end_sha):
     entries = []
 
+    passed_end_sha = False
+    if not end_sha:
+        passed_end_sha = True
+
     for commit in repo.get_commits():
+        if commit.sha == end_sha:
+            passed_end_sha = True
+
+        if not passed_end_sha:
+            continue
+
         if commit.sha == start_sha:
             break
 
@@ -183,7 +203,7 @@ def run_changelog_generation(args):
     github_instance = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
     repo = github_instance.get_repo(REPO_NAME)
 
-    entries = _get_changelog_entries(repo, args.start_sha)
+    entries = _get_changelog_entries(repo, args.start_sha, args.end_sha)
     output = ""
 
     for label, category in CHANGELOG_CATEGORIES.items():
