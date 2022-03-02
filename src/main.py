@@ -159,15 +159,19 @@ def run_ci(args):
 def _get_changelog_entries(repo, start_sha, end_sha):
     entries = []
 
-    passed_end_sha = False
-    if not end_sha:
-        passed_end_sha = True
+    end_sha_found = False
+    commits = repo.get_commits()
 
-    for commit in repo.get_commits():
+    # If end_sha is not specified then use the first commit
+    if end_sha is None:
+        end_sha = commits[0].sha
+
+    for commit in commits:
         if commit.sha == end_sha:
-            passed_end_sha = True
+            end_sha_found = True
 
-        if not passed_end_sha:
+        # Do not include commits if the end sha has not been found yet
+        if not end_sha_found:
             continue
 
         if commit.sha == start_sha:
